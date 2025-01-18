@@ -8,15 +8,9 @@ import { modelMap } from "./models";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).PIXI = PIXI;
 
-async function arrayBufferToAudioBuffer(arrayBuffer: ArrayBuffer) {
-  const audioContext = new AudioContext();
-  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-  return audioBuffer;
-}
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [text, setText] = useState("");
   const leftMotionSync = useRef<MotionSync>();
   const rightMotionSync = useRef<MotionSync>();
 
@@ -33,23 +27,12 @@ export default function App() {
     console.log("This is getting called!  ", leftModel);
     if (leftModel) {
       console.log("Left Model is available!");
-      leftModel.motion(""); // Replace "" with the desired motion name or ID
+      leftModel.motion(""); 
     } else {
       console.error("Left Model is not loaded yet.");
     }
   };
 
-  // const play = async (side: 'left' | 'right' | 'both') => {
-  //   const buffer = await tts(text);
-  //   const audioBuffer = await arrayBufferToAudioBuffer(buffer);
-
-  //   if (side === 'left' || side === 'both') {
-  //     leftMotionSync.current?.play(audioBuffer);
-  //   }
-  //   if (side === 'right' || side === 'both') {
-  //     rightMotionSync.current?.play(audioBuffer);
-  //   }
-  // };
 
   useEffect(() => {
     let app: PIXI.Application;
@@ -90,7 +73,6 @@ export default function App() {
       leftModel.x = canvasWidth / 4 - leftModel.width / 2;
       leftModel.y = 0;
 
-      // Scale and position right model
       const rightModelRatio = rightModel.width / rightModel.height;
       rightModel.height = canvasHeight;
       rightModel.width = rightModel.height * rightModelRatio;
@@ -161,13 +143,6 @@ export default function App() {
                 Stop All
               </Button>
             </Space>
-
-            {/* <div>Custom Text:</div>
-            <Input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Enter text to speak"
-            /> */}
 
             <Space className="flex-wrap">
               <Button
