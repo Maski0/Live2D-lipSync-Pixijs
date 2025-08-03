@@ -1,184 +1,54 @@
-import * as PIXI from "pixi.js";
-import { Live2DModel } from "pixi-live2d-display";
-import { useEffect, useRef, useState } from "react";
-import { MotionSync } from "live2d-motionsync";
-import { Button, Card, Input, Select, Space, Spin } from "antd";
-import { modelMap } from "./models";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(window as any).PIXI = PIXI;
-
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Button } from 'antd';
+import Live2DPage from './DoubleLive2DPage';
+import TestPage from './Live2DPage';
 
 export default function App() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const leftMotionSync = useRef<MotionSync>();
-  const rightMotionSync = useRef<MotionSync>();
-
-  const leftModelName = "mao"; // Predefined left model
-  const rightModelName = "BogDanoff"; // Predefined right model
-
-  const [loading, setLoading] = useState(true);
-
-  const leftModelRef = useRef<Live2DModel | null>(null);
-  const rightModelRef = useRef<Live2DModel | null>(null);
-
-  const MotionTesting = async () => {
-    const leftModel = leftModelRef.current; // Access from ref
-    console.log("This is getting called!  ", leftModel);
-    if (leftModel) {
-      console.log("Left Model is available!");
-      leftModel.motion(""); 
-    } else {
-      console.error("Left Model is not loaded yet.");
-    }
-  };
-
-
-  useEffect(() => {
-    let app: PIXI.Application;
-
-    const loadModels = async () => {
-      if (!canvasRef.current) return;
-      setLoading(true);
-
-      // Initialize PIXI Application
-      app = new PIXI.Application({
-        view: canvasRef.current,
-        resizeTo: canvasRef.current.parentElement || undefined,
-        backgroundAlpha: 0,
-      });
-
-      // Load left model
-      const leftModelUrl = modelMap[leftModelName];
-      const leftModel = await Live2DModel.from(leftModelUrl, {
-        autoInteract: false,
-      });
-      leftModelRef.current = leftModel; // Store in ref
-
-      // Load right model
-      const rightModelUrl = modelMap[rightModelName];
-      const rightModel = await Live2DModel.from(rightModelUrl, {
-        autoInteract: false,
-      });
-      rightModelRef.current = rightModel;
-
-      // Calculate positions and scaling
-      const canvasWidth = app.view.width;
-      const canvasHeight = app.view.height;
-
-      // Scale and position left model
-      const leftModelRatio = leftModel.width / leftModel.height;
-      leftModel.height = canvasHeight;
-      leftModel.width = leftModel.height * leftModelRatio;
-      leftModel.x = canvasWidth / 4 - leftModel.width / 2;
-      leftModel.y = 0;
-
-      const rightModelRatio = rightModel.width / rightModel.height;
-      rightModel.height = canvasHeight;
-      rightModel.width = rightModel.height * rightModelRatio;
-      rightModel.x = (3 * canvasWidth) / 4 - rightModel.width / 2;
-      rightModel.y = 0;
-
-      // Add models to stage
-      app.stage.addChild(leftModel as unknown as PIXI.DisplayObject);
-      app.stage.addChild(rightModel as unknown as PIXI.DisplayObject);
-
-      // Initialize MotionSync for both models
-      leftMotionSync.current = new MotionSync(leftModel.internalModel);
-      await leftMotionSync.current.loadMotionSyncFromUrl(
-        leftModelUrl.replace(/.model(.)?.json/, ".motionsync3.json")
-      );
-
-      rightMotionSync.current = new MotionSync(rightModel.internalModel);
-      await rightMotionSync.current.loadMotionSyncFromUrl(
-        rightModelUrl.replace(/.model(.)?.json/, ".motionsync3.json")
-      );
-
-      setLoading(false);
-    };
-
-    loadModels();
-
-    // Cleanup function
-    return () => {
-      leftMotionSync.current?.reset();
-      rightMotionSync.current?.reset();
-      leftModelRef.current?.destroy();
-      rightModelRef.current?.destroy();
-      app?.destroy();
-    };
-  }, [leftModelName, rightModelName]);
-
   return (
-    <div className="size-full flex">
-      <div className="flex-1 relative">
-        <canvas ref={canvasRef} />
-        {loading && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Spin />
+    <Router basename="/">
+      <div className="size-full flex flex-col">
+        {/* Navigation */}
+        <nav className="bg-gray-800 text-white p-4">
+          <div className="flex gap-4 items-center justify-between">
+            <div className="flex gap-4 items-center">
+              <h1 className="text-xl font-bold">Live2D Motion Sync</h1>
+              <div className="flex gap-2">
+                <Link to="/">
+                  <Button type="primary">Home</Button>
+                </Link>
+                <Link to="/double-model-test">
+                  <Button>Double Model Test</Button>
+                </Link>
+              </div>
+            </div>
+            <a
+              href="https://github.com/Maski0/Live2D-lipSync-Pixijs"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white hover:text-gray-300 transition-colors flex items-center gap-2"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M12 0C5.374 0 0 5.373 0 12 0 17.302 3.438 21.8 8.207 23.387c.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+              </svg>
+              <span>GitHub</span>
+            </a>
           </div>
-        )}
-      </div>
+        </nav>
 
-      <div className="w-[300px] flex flex-col gap-2 justify-center p-4">
-        <Card title="Controls" className="w-full">
-          <div className="flex flex-col gap-2">
-            <div>Default Animation:</div>
-            <Space>
-              <Button
-                onClick={() => {
-                  leftMotionSync.current?.play("/live2d-motionSync/Test.wav");
-                  rightMotionSync.current?.play("/live2d-motionSync/Test.wav");
-                }}
-              >
-                Play Both
-              </Button>
-              <Button
-                danger
-                onClick={() => {
-                  leftMotionSync.current?.reset();
-                  rightMotionSync.current?.reset();
-                }}
-              >
-                Stop All
-              </Button>
-            </Space>
-
-            <Space className="flex-wrap">
-              <Button
-                onClick={() =>
-                  leftMotionSync.current?.play("/live2d-motionSync/sayhi.wav")
-                }
-              >
-                Play Left
-              </Button>
-              <Button
-                onClick={() =>
-                  rightMotionSync.current?.play("/live2d-motionSync/Test.wav")
-                }
-              >
-                Play Right
-              </Button>
-            </Space>
-            <Space className="flex-wrap">
-              <Button
-                onClick={() => {
-                  MotionTesting();
-                }}
-              >
-                MotionTest Left
-              </Button>
-              <Button
-                onClick={() => {
-                  MotionTesting();
-                }}
-              >
-                MotionTest Right
-              </Button>
-            </Space>
-          </div>
-        </Card>
+        {/* Routes */}
+        <div className="flex-1">
+          <Routes>
+            <Route path="/" element={<TestPage />} />
+            <Route path="/double-model-test" element={<Live2DPage />} />
+          </Routes>
+        </div>
       </div>
-    </div>
+    </Router>
   );
 }
